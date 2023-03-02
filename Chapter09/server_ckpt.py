@@ -41,10 +41,7 @@ def predict():
     img = Image.open(img_file.stream)
     img = transform_image(img)
     prediction = get_prediction(img)
-    if prediction >= 0.5:
-        cancer_or_not = "cancer"
-    else:
-        cancer_or_not = "no_cancer"
+    cancer_or_not = "cancer" if prediction >= 0.5 else "no_cancer"
     return jsonify({'cancer_or_not': cancer_or_not})
 
 if __name__ == '__main__':
