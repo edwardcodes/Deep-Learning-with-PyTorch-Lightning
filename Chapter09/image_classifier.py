@@ -59,15 +59,13 @@ class CNNImageClassifier(pl.LightningModule):
 
     def configure_optimizers(self):
         params = self.parameters()
-        optimizer = optim.Adam(params=params, lr = self.learning_rate)
-        return optimizer
+        return optim.Adam(params=params, lr = self.learning_rate)
 
     # Calculate accuracy for each batch at a time
     def binary_accuracy(self, outputs, targets):
         _, outputs = torch.max(outputs,1)
         correct_results_sum = (outputs == targets).sum().float()
-        acc = correct_results_sum/targets.shape[0]
-        return acc
+        return correct_results_sum/targets.shape[0]
 
     def predict_step(self, batch, batch_idx ):
         return self(batch)

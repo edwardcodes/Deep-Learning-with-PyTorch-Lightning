@@ -35,8 +35,7 @@ class HybridModel(pl.LightningModule):
         embeddings = torch.cat((cnn_features.unsqueeze(1), embeddings), 1)
         lstm_input = pk_pdd_seq(embeddings, lens, batch_first=True)
         hddn_vars, _ = self.lstm_lyr(lstm_input)
-        model_outputs = self.lstm_linear(hddn_vars[0])
-        return model_outputs
+        return self.lstm_linear(hddn_vars[0])
 
     def forward_cnn_no_batch_norm(self, input_images):
         with torch.no_grad():
@@ -46,12 +45,11 @@ class HybridModel(pl.LightningModule):
 
     def configure_optimizers(self):
         params = list(self.lstm_embdng_lyr.parameters()) + \
-                 list(self.lstm_lyr.parameters()) + \
-                 list(self.lstm_linear.parameters()) + \
-                 list(self.cnn_linear.parameters()) + \
-                 list(self.cnn_batch_norm.parameters())
-        optimizer = torch.optim.Adam(params, lr=0.0003)
-        return optimizer
+                     list(self.lstm_lyr.parameters()) + \
+                     list(self.lstm_linear.parameters()) + \
+                     list(self.cnn_linear.parameters()) + \
+                     list(self.cnn_batch_norm.parameters())
+        return torch.optim.Adam(params, lr=0.0003)
 
     def training_step(self, batch, batch_idx):
         loss_criterion = nn.CrossEntropyLoss()
@@ -67,12 +65,11 @@ class HybridModel(pl.LightningModule):
 
         token_ints = []
         inputs = features.unsqueeze(1)
-        for i in range(self.max_seq_len):
+        for _ in range(self.max_seq_len):
             hddn_vars, lstm_sts = self.lstm_lyr(inputs, lstm_sts)
             model_outputs = self.lstm_linear(hddn_vars.squeeze(1))
             _, predicted_outputs = model_outputs.max(1)
             token_ints.append(predicted_outputs)
             inputs = self.lstm_embdng_lyr(predicted_outputs)
             inputs = inputs.unsqueeze(1)
-        token_ints = torch.stack(token_ints, 1)
-        return token_ints
+        return torch.stack(token_ints, 1)
